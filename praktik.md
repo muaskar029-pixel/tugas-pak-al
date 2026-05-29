@@ -60,14 +60,14 @@ vgs
 ```
 Buat Logical Volume sesuai CIS + swap terenkripsi
 ```
-lvcreate -L 28G sawitGrup -n cryptroot
-lvcreate -L 5G sawitGrup -n crypttmp
-lvcreate -L 12G sawitGrup -n cryptvar
-lvcreate -L 5G sawitGrup -n cryptvartmp
-lvcreate -L 7G sawitGrup -n cryptvarlog
-lvcreate -L 4G sawitGrup -n cryptaudit
-lvcreate -L 4G sawitGrup -n cryptswap
-lvcreate -l 100%FREE sawitGrup -n crypthome
+lvcreate -L 28G sawitGrup -n root
+lvcreate -L 5G sawitGrup -n tmp
+lvcreate -L 12G sawitGrup -n var
+lvcreate -L 5G sawitGrup -n tmp
+lvcreate -L 7G sawitGrup -n varlog
+lvcreate -L 4G sawitGrup -n audit
+lvcreate -L 4G sawitGrup -n swap
+lvcreate -l 100%FREE sawitGrup -n home
 ```
 cek
 ```
@@ -75,29 +75,29 @@ lvs
 ```
 targetnya ad:
 ```
-cryptroot
-crypttmp
-cryptvar
-cryptvartmp
-cryptvarlog
-cryptaudit
-cryptswap
-crypthome
+root
+tmp
+var
+vartmp
+varlog
+audit
+swap
+home
 ```
 Sekarang enkripsi semua LV kecuali swap dulu:
 ```
-cryptsetup luksFormat /dev/sawitGrup/cryptroot
-cryptsetup luksFormat /dev/sawitGrup/crypttmp
-cryptsetup luksFormat /dev/sawitGrup/cryptvar
-cryptsetup luksFormat /dev/sawitGrup/cryptvartmp
-cryptsetup luksFormat /dev/sawitGrup/cryptvarlog
-cryptsetup luksFormat /dev/sawitGrup/cryptaudit
-cryptsetup luksFormat /dev/sawitGrup/crypthome
+cryptsetup luksFormat /dev/sawitGrup/root
+cryptsetup luksFormat /dev/sawitGrup/tmp
+cryptsetup luksFormat /dev/sawitGrup/var
+cryptsetup luksFormat /dev/sawitGrup/vartmp
+cryptsetup luksFormat /dev/sawitGrup/varlog
+cryptsetup luksFormat /dev/sawitGrup/audit
+cryptsetup luksFormat /dev/sawitGrup/home
 ```
 Buka volume LUKS
 ```
-cryptsetup open /dev/sawitGrup/cryptroot cryptroot
-cryptsetup open /dev/sawitGrup/crypttmp crypttmp
+cryptsetup open /dev/sawitGrup/root root
+cryptsetup open /dev/sawitGrup/tmp tmp
 cryptsetup open /dev/sawitGrup/cryptvar cryptvar
 cryptsetup open /dev/sawitGrup/cryptvartmp cryptvartmp
 cryptsetup open /dev/sawitGrup/cryptvarlog cryptvarlog
