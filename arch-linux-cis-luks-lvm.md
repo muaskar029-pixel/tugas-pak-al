@@ -131,14 +131,14 @@ vgcreate vg0 /dev/nvme0n1p6
 
 # Buat semua Logical Volume (~100GB total)
 lvcreate -L 4G       vg0 -n lv_swap
-lvcreate -L 20G      vg0 -n lv_root
+lvcreate -l 50%FREE  vg0 -n lv_root
 lvcreate -L 2G       vg0 -n lv_tmp
 lvcreate -L 8G       vg0 -n lv_var
 lvcreate -L 2G       vg0 -n lv_var_tmp
 lvcreate -L 4G       vg0 -n lv_var_log
 lvcreate -L 2G       vg0 -n lv_var_audit
 lvcreate -l 100%FREE vg0 -n lv_home
-# lv_home mendapat sisa ~58GB
+# lv_home mendapat sisa 
 
 # Verifikasi
 lvs
@@ -149,23 +149,11 @@ lvs
 ## LANGKAH 5 — Enkripsi LUKS
 
 ```bash
-# Enkripsi semua LV kecuali swap
-for lv in lv_root lv_tmp lv_var lv_var_tmp lv_var_log lv_var_audit lv_home; do
-  echo "==> Encrypting /dev/vg0/$lv"
-  cryptsetup luksFormat /dev/vg0/$lv
-done
-
-# Buka semua partisi LUKS
-cryptsetup open /dev/vg0/lv_root      cryptroot
-cryptsetup open /dev/vg0/lv_tmp       crypttmp
-cryptsetup open /dev/vg0/lv_var       cryptvar
-cryptsetup open /dev/vg0/lv_var_tmp   cryptvar_tmp
-cryptsetup open /dev/vg0/lv_var_log   cryptvar_log
-cryptsetup open /dev/vg0/lv_var_audit cryptvar_audit
-cryptsetup open /dev/vg0/lv_home      crypthome
+cryptsetup luksFormat /dev/vg0/cryptroot
+# Buka partisi LUKS
+cryptsetup open /dev/vg0/lv_root cryptroot
 ```
-
----
+masukin password dua kali
 
 ## LANGKAH 6 — Format Filesystem
 
@@ -177,23 +165,21 @@ mkfs.ext4 /dev/mapper/cryptvar_tmp
 mkfs.ext4 /dev/mapper/cryptvar_log
 mkfs.ext4 /dev/mapper/cryptvar_audit
 mkfs.ext4 /dev/mapper/crypthome
-
-# Swap tanpa enkripsi LUKS
 mkswap /dev/vg0/lv_swap
 ```
-
----
 
 ## LANGKAH 7 — Mount sesuai CIS
 
 ```bash
 # Root terlebih dahulu
 mount /dev/mapper/cryptroot /mnt
-
+```
 # Buat semua direktori mount point
+```
 mkdir -p /mnt/{boot,tmp,home,var/tmp,var/log/audit}
-
+```
 # Mount EFI Windows yang sudah ada (JANGAN format ulang!)
+```
 mount /dev/nvme0n1p1 /mnt/boot
 
 # Mount dengan flag CIS (urutan penting!)
@@ -203,8 +189,9 @@ mount -o nodev,nosuid,noexec /dev/mapper/cryptvar_tmp   /mnt/var/tmp
 mount                         /dev/mapper/cryptvar_log   /mnt/var/log
 mount                         /dev/mapper/cryptvar_audit /mnt/var/log/audit
 mount -o nodev               /dev/mapper/crypthome      /mnt/home
-
+```
 # Aktifkan swap
+```
 swapon /dev/vg0/lv_swap
 ```
 
@@ -235,48 +222,77 @@ cat /mnt/etc/fstab
 
 ```bash
 arch-chroot /mnt
-
+```
 # Timezone
+```
 ln -sf /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 hwclock --systohc
+```
 
 # Locale
-echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
+```
+nano /etc/locale.gen
+
 locale-gen
-echo "LANG=en_US.UTF-8" > /etc/locale.conf
-
+```
+```
+nano /etc/locale.conf
+```
+```
+"LANG=en_US.UTF-8"
+```
 # Hostname
-echo "archcis" > /etc/hostname
-
+```
+nano /etc/hostname
+```
 # Set password root
 passwd
-```
-
----
 
 ## LANGKAH 10 — Konfigurasi Booster
-
-`booster` membaca konfigurasi dari `/etc/booster.yaml`.
-
-```bash
-vim /etc/booster.yaml
+cek image
 ```
-
-Isi file:
-
-```yaml
-# /etc/booster.yaml
-modules_force_load: lvm,dm-crypt
-extra_files: busybox,fsck,fsck.ext4
-vconsole: true
+ls -lh /boot/booster*
 ```
-
+kalau ga ada
 Build initramfs dengan booster:
-
+```
+booster build mybooster.img
+```
+atau
 ```bash
 booster build --force /boot/booster-linux.img
 ```
+cek lagi
+konfigurasi luks untuk memberitahu booster root
 
+
+cari tahu UUID root
+```
+blkid /dev/mapper/cryptroot
+blkid -s UUID -o value /dev/mapper/cryptroot
+```
+salin atau foto uuidnya lalu masukan disini
+```
+nano /etc/default/grub
+```
+```
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+```
+```
+rd.luks.name=device-UUID=root root=/dev/mapper/root
+```
+```
+rd.luks.name=masukanUUIDdisini=root root=/dev/mapper/cryptroot
+```
+```
+cryptdevice=UUID=device-UUID:root root=/dev/mapper/root
+cryptdevice=UUID=masukanUUID:cryptroot root=/dev/mapper/cryptroot
+
+ctrl o
+enter
+ctrl x
+
+konfigurasi 
 > `booster` otomatis mendeteksi kernel yang terinstall. File initramfs akan dibuat di `/boot/booster-linux.img`.
 
 Verifikasi file terbuat:
@@ -338,10 +354,6 @@ GRUB_CMDLINE_LINUX="cryptdevice=UUID=<UUID-lv_root>:cryptroot root=/dev/mapper/c
 # Gunakan booster sebagai initramfs
 GRUB_EARLY_INITRD_LINUX_STOCK=""
 
-# Enable deteksi Windows
-GRUB_DISABLE_OS_PROBER=false
-```
-
 Generate konfigurasi GRUB:
 
 ```bash
@@ -352,6 +364,11 @@ Verifikasi entry booster terdeteksi di grub.cfg:
 
 ```bash
 grep booster /boot/grub/grub.cfg
+```
+
+konfigurasi fstab
+```
+nano /etc/fstab
 ```
 
 ---
