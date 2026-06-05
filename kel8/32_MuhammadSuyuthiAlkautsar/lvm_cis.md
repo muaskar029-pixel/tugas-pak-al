@@ -102,15 +102,8 @@ mount --mkdir -o rw,nodev,nosuid,noexec,relatime /dev/sawit/home /mnt/home
 jika diperlukan semisalnya downloadnya masih lambat
 ```
 nano /etc/pacman.d/mirrorlist
-```
-### pilih yang kaliah rasa lebih cocok dan pindahkan paling atas
 
 ## Install packages penting
-
-paket untuk basic linux kernel dan perangkat keras secara umum
-```
-pacstrap -K /mnt base linux linux-firmware
-```
 paket yang sudah dikustomisasi untuk laptop saya
 ```
 pacstrap -K /mnt base linux-hardened amd-ucode mesa vulkan-radeon xf68-video-amdgpu xf68-video-ati linux-firmware networkmanager nano sudo grub efibootmgr os-prober
@@ -161,6 +154,23 @@ hostname
 ```
 nano /etc/hostname
 ```
+adduser
+```
+useradd -m -G wheel -s /bin/bash kautsar
+```
+masuk
+```
+EDITOR=nano visudo
+```
+uncomment
+```
+# %wheel ALL=(ALL:ALL) ALL
+```
+EDITOR=nano visudo
+```
+passwd
+```
+nano
 
 ### ketik nama hostname
 ### start networkmanager
@@ -194,6 +204,14 @@ nyalakan os-prober
 ```
 nano /etc/default/grub
 ```
+setting sendiri malas ngetik
+
+
+update bootloader
+```
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+setting sendiri malas ngetik
 Reboot
 ```
 exit
