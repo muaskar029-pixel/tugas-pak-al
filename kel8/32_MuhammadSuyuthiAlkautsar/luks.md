@@ -70,4 +70,68 @@ cut uuidnya lalu dibagian ini ketik seperti itu
 cryptdevice=UUID= device-UUID :root root=/dev/mapper/root
 ```
 paste uuid dibagian ini ```device-UUID```
+```
+grub-mkconfig -o /boot/grub/grub.cfg
+```
+cek 
+```
+cd /boot
+ls
+cd grub
+ls -al
+```
+keluar
+```
+cd ~
+```
+generate initframs
 
+```
+mkinitcpio -P
+```
+
+jika  belum kedetect luksnya
+```
+pacman -S cryptsetup
+```
+masuk ke 
+```
+nano /etc/mkinitcpio.conf
+```
+lalu cari sperti ini 
+```
+HOOKS=(base systemd autodetect microcode modconf kms keyboard block lvm2 filesystems fsck)
+```
+tambahkan cryptsetup setelah lvm
+```
+HOOKS=(base systemd autodetect microcode modconf kms keyboard block lvm2 cryptsetup filesystems fsck)
+```
+```
+mkinitcpio -P
+```
+copy crypttab ke initframs dengan script shell
+
+
+login sebagai root
+```
+sudo su-
+```
+```
+cd /etc/initframs-tools/hooks
+```chmod +
+```
+ls
+```
+```
+nano copy_crypttab.sh
+```
+masukan
+```
+#!/bin/sh
+<p /etc/crypttab "${DESTDIR}/cryptroot/crypttab"
+exit 0
+```
+```
+chmod +x copy_crypttab.sh
+```
+mkinitcipio -P
