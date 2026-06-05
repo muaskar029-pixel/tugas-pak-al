@@ -46,7 +46,7 @@ buat satu disk untuk lvm dan boot jika dibutuhkan
 
 ### lalu format disk
 
-jika buat boot
+jika buat boot, jangan diformat ulang kalau sebelumnnya sudah ada karena dapat merusak sistem
 ### untuk boot
 ```
 mkfs.fat -F 32 /dev/nvme0n1p6
@@ -182,6 +182,8 @@ sesuaikan dengan folder boot
 ```
 grub-install --target=x86_64-efi --efi-directory=/boot --bootloader-id=GRUB
 ```
+karena saya sudah buat jadi tidak perlu
+
 ### initframs
 ```
 mkinitcpio -P
