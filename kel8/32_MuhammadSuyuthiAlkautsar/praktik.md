@@ -202,10 +202,6 @@ passwd
 ### boot loader
 
 ### install grub package
-contoh
-```
-grub-install --target=x86_64-efi --efi-directory=esp --bootloader-id=GRUB
-```
 sesuaikan dengan folder boot
 di laptop saya
 ```
@@ -215,16 +211,17 @@ karena saya sudah buat jadi tidak perlu
 
 update grub
 ```
-echo "cryptsetup luksUUID /dev/mapper/lvroot" >> /etc/crypttab
+echo "cryptsetup luksUUID /dev/mapper/lvroot" >> /etc/default/grub
 ```
-
 ``` 
 nano /etc/default/grub
 ```
 buat seperti ini
 cut uuidnya lalu dibagian ini ketik seperti itu
+cmmd defaut grub
 ```
-cryptdevice=UUID= device-UUID :root root=/dev/mapper/root
+rd.luks.name=device-UUID=cryptroot root=/dev/mapper/cryptroot
+```
 ```
 paste uuid dibagian ini ```device-UUID```
 ```
