@@ -518,7 +518,11 @@ Jika hasilnya:
 ```text
 Syntax OK
 ```
-
+jika error
+```
+sudo nano /etc/httpd/conf/httpd.conf
+```
+pada ServerName masukan port server
 restart service:
 
 ```bash
