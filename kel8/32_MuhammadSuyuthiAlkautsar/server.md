@@ -1,8 +1,8 @@
-
+```
 whoami
 hostnamectl
 uname -a
-
+```
 Update sistem:
 ```
 pacman -Syu
@@ -10,35 +10,6 @@ pacman -Syu
 ```
 pacman -S --needed git curl wget unzip nano vim sudo
 ```
-## Install Kernel Linux Hardened
-
-Install kernel hardened:
-```
-pacman -S --needed linux-hardened linux-hardened-headers
-```
-Update bootloader.
-
-Jika memakai GRUB:
-```
-grub-mkconfig -o /boot/grub/grub.cfg
-```
-Restart server:
-
-reboot
-
-Setelah reboot, cek kernel:
-```
-uname -r
-```
-Pastikan output mengandung:
-```
-hardened
-```
-Contoh:
-```
-6.x.x-hardened
-```
-
 
 ## Install Apache, PHP-FPM, dan MariaDB
 
@@ -58,9 +29,8 @@ sudo systemctl status httpd
 sudo systemctl status php-fpm
 sudo systemctl status firewalld
 ```
-———
 
-Konfigurasi PHP untuk SLiMS
+Konfigurasi PHP untuk Arteri
 
 Edit file PHP:
 ```
@@ -113,17 +83,17 @@ Ubah menjadi:
 ```
 Include conf/extra/httpd-vhosts.conf
 ```
-Buat konfigurasi virtual host SLiMS:
+Buat konfigurasi virtual host Arteri:
 ```
 sudo nano /etc/httpd/conf/extra/httpd-vhosts.conf
 ```
 Isi:
 ```
 <VirtualHost *:80>
-    ServerName slims.local
-    DocumentRoot "/srv/http/slims"
+    ServerName arteri.local
+    DocumentRoot "/srv/http/arteri"
 
-    <Directory "/srv/http/slims">
+    <Directory "/srv/http/arteri">
         Options -Indexes +FollowSymLinks
         AllowOverride All
         Require all granted
@@ -134,8 +104,8 @@ Isi:
         "proxy:unix:/run/php-fpm/php-fpm.sock|fcgi://localhost/"
     </FilesMatch>
 
-    ErrorLog "/var/log/httpd/slims-error.log"
-    CustomLog "/var/log/httpd/slims-access.log" combined
+    ErrorLog "/var/log/httpd/arteri-error.log"
+    CustomLog "/var/log/httpd/arteri-access.log" combined
 </VirtualHost>
 ```
 Tes konfigurasi Apache:
@@ -180,16 +150,16 @@ Masuk ke MariaDB:
 ```
 sudo mariadb
 ```
-Buat database dan user SLiMS:
+Buat database dan user arteri:
 ```
-CREATE DATABASE senayan CHARACTER SET utf8mb4 COLLATE
+CREATE DATABASE arsipDigital CHARACTER SET utf8mb4 COLLATE
 utf8mb4_unicode_ci;
-CREATE USER 'slimsuser'@'localhost' IDENTIFIED BY 'GantiPasswordKuat';
-GRANT ALL PRIVILEGES ON senayan.* TO 'slimsuser'@'localhost';
+CREATE USER 'arteriuser'@'localhost' IDENTIFIED BY 'GantiPasswordKuat';
+GRANT ALL PRIVILEGES ON arsipDigital.* TO 'arteriuser'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
-## Ambil Project SLiMS dari GitHub
+## Ambil Project arteri dari GitHub
 
 Masuk ke direktori web:
 ```
@@ -197,37 +167,33 @@ cd /srv/http
 ```
 Clone project arteri:
 ```
-[https://github.com/dicarve/arteri.git](https://github.com/dicarve/arteri.git)
+sudo git clone https://github.com/dicarve/arteri.git arteri
 ```
-Masuk folder SLiMS:
+Masuk folder arteri:
 ```
-cd /srv/http/slims
+cd arteri
 ```
 Set ownership ke user Apache:
 ```
-sudo chown -R http:http /srv/http/slims
+sudo chown -R http:http /srv/http/arteri
 ```
 Set permission dasar:
 ```
-sudo find /srv/http/slims -type d -exec chmod 755 {} \;
-sudo find /srv/http/slims -type f -exec chmod 644 {} \;
+sudo find /srv/http/arteri -type d -exec chmod 755 {} \;
+sudo find /srv/http/arteri -type f -exec chmod 644 {} \;
 ```
 Set permission folder yang perlu ditulis aplikasi:
 ```
-sudo chmod -R 775 /srv/http/slims/files
-sudo chmod -R 775 /srv/http/slims/images
-sudo chmod -R 775 /srv/http/slims/repository
-sudo chown -R http:http /srv/http/slims/files /srv/http/slims/images /
-srv/http/slims/repository
+sudo chmod -R 775 /srv/http/arteri/files
+sudo chown -R http:http /srv/http/arteri/files
 ```
 ———
 
-## 9. Import Database SLiMS
+## 9. Import Database Arteri
 
-Import struktur database bawaan SLiMS:
+Import struktur database bawaan Arteri:
 ```
-sudo mariadb -u slimsuser -p senayan < /srv/http/slims/install/
-senayan_ddl.sql
+sudo mariadb -u arteriuser -p arteri < /srv/http/arteri/sql/arteri.sql
 ```
 Masukkan password:
 ```
@@ -235,8 +201,7 @@ GantiPasswordKuat
 ```
 Jika ingin menggunakan sample data:
 ```
-sudo mariadb -u slimsuser -p senayan < /srv/http/slims/install/
-sampledata.sql
+sudo nano /srv/http/arteri/application/config/database.php
 ```
 ———
 
