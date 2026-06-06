@@ -7,12 +7,13 @@ pacman -S apache
 ```
 Install Apache, PHP-FPM, dan MariaDB
 ```
-sudo pacman -S --needed apache php php-fpm php-gd php-intl php-zip mariadb firewalld
+sudo pacman -S --needed apache php php-fpm php-gd php-intl php-zip mariadb firewalld git nano curl unzip
 ```
 Aktifkan service
 ```
 sudo systemctl enable --now httpd
 sudo systemctl enable --now firewalld
+sudo systemctl enable --now php-fpm
 ```
 Konfigurasi apache untuk file terletak di
 ```
@@ -39,8 +40,42 @@ masukan ```127.0.0.1:80``` jika ingin local development yang hanya bisa diakses 
 ```
 masukan folder web di sini
 
+
 php-fpm
+
+
+cek
+```
+systemctl is-active php-fpm
+```
+buka
+```
+sudo nano /etc/php/php.ini
+```
+Cari dengan Ctrl + W.
+```
+extension=mysqli
+extension=pdo_mysql
+extension=gd
+extension=zip
+extension=mbstring
+```
+Sesuaikan konfigurasi upload dan timezone:
+```
+file_uploads = On
+upload_max_filesize = 64M
+post_max_size = 64M
+memory_limit = 256M
+max_execution_time = 300
+date.timezone = Asia/Jakarta
+```
+Restart PHP-FPM:
+```
+sudo systemctl restart php-fpm
+```
+cari
 aktifkan module untuk proxy
+
 
 <img width="492" height="126" alt="image" src="https://github.com/user-attachments/assets/60bd6bcf-88d1-497b-b44c-4dd774ebcdc6" />
 
@@ -122,5 +157,41 @@ Masukkan password:
 ```
 GantiPasswordKuat
 ```
+Edit database config Arteri
+```
+sudo nano /srv/http/arteri/application/config/database.php
+```
+Isi bagian pentingnya harus seperti ini:
+```
+$active_group = 'default';
+$query_builder = TRUE;
 
-
+$db['default'] = array(
+    'dsn'      => '',
+    'hostname' => 'localhost',
+    'username' => 'arteriuser',
+    'password' => 'GantiPasswordKuat',
+    'database' => 'arteri',
+    'dbdriver' => 'mysqli',
+    'dbprefix' => '',
+    'pconnect' => FALSE,
+    'db_debug' => (ENVIRONMENT !== 'production'),
+    'cache_on' => FALSE,
+    'cachedir' => '',
+    'char_set' => 'utf8',
+    'dbcollat' => 'utf8_unicode_ci',
+    'swap_pre' => '',
+    'encrypt' => FALSE,
+    'compress' => FALSE,
+    'stricton' => FALSE,
+    'failover' => array(),
+    'save_queries' => TRUE
+);
+```
+set permission
+```
+sudo chown http:http /srv/http/arteri/application/config/database.php
+```
+```
+sudo chmod 640 /srv/http/arteri/application/config/database.php
+```
