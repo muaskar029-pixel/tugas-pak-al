@@ -4,18 +4,35 @@ download packet apache
 sudo pacman -Syu
 sudo pacman -S apache
 ```
+
+https://archlinux.org/packages/?name=apache
+
+
 Aktifkan service
 ```
 sudo systemctl enable httpd
 sudo systemctl start httpd
 sudo systemctl status httpd
 ```
+
 test dengan mengetik 
 ```
 curl http://localhost/
 ```
 seharusnua muncul page default index.html
-
+```
+cd /srv/http
+sudo touch index.html
+sudo nano index.html
+```
+isi
+```html
+<h1>Hallo mas reza</h1>
+```
+```
+curl http://localhost/
+```
+https://www.youtube.com/watch?v=YaEdcKWiJEk
 
 Konfigurasi apache untuk file terletak di
 ```
@@ -94,6 +111,11 @@ sudo apachectl configtest
 sudo systemctl httpd
 sudo systemctl reload httpd
 ```
+https://httpd.apache.org/docs/current/zh-cn/programs/apachectl.html
+
+
+https://httpd.apache.org/docs/current/zh-cn/sitemap.html
+
 ```
 "/srv/http"
 ```
@@ -154,7 +176,7 @@ sudo systemctl restart php-fpm-legacy
 ```
 sudo systemctl enable --now php-fpm
 ```
-
+https://www.youtube.com/watch?v=3YJpmEMk8P0
 
 Siapkan MariaDB
 ```
@@ -169,18 +191,18 @@ sudo mariadb-secure-installation
 ```
 `/etc/my.cnf.d/server.cnf`:
 
-```ini
+```
 [mysqld]
 bind-address = 127.0.0.1
 ```
 
 3. Buat Database dan User
 
-```bash
+```
 sudo mariadb
 ```
 
-```sql
+```
 create database arteri_db character set utf8 collate utf8_unicode_ci;
 create user 'arteri_user'@'localhost'
   identified by 'kautsar123';
@@ -189,7 +211,7 @@ flush privileges;
 exit;
 ```
 
-```bash
+```
 sudo systemctl restart mariadb
 sudo ss -ltnp | grep 3306
 ```
@@ -275,7 +297,7 @@ set permission
 sudo chown root:http /srv/http/arteri/application/config/database.php
 sudo chmod 640 /srv/http/arteri/application/config/database.php
 ```
-
+https://wiki.archlinux.org/title/MariaDB
 
 Konfigurasi firewalld
 
@@ -365,3 +387,6 @@ https://www.youtube.com/watch?v=VKtOhvwlNgs&t=37s
 
 
 https://www.youtube.com/watch?v=GYnmm97bPxg
+
+
+https://httpd.apache.org/docs/current/zh-cn/sitemap.html
