@@ -314,7 +314,7 @@ Patch Kompatibilitas CodeIgniter 3.1.6
 
 Pada `/srv/http/arteri/index.php`, ubah:
 
-```php
+```
 case 'development':
     error_reporting(-1);
     ini_set('display_errors', 1);
@@ -323,7 +323,7 @@ break;
 
 menjadi:
 
-```php
+```
 case 'development':
     error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
     ini_set('display_errors', 1);
@@ -336,17 +336,17 @@ CodeIgniter 3.1.6 dibuat sebelum PHP 8.2. Tanpa patch ini, notifikasi `Creation 
 
 Pada `/srv/http/arteri/application/config/config.php`, ubah:
 
-```php
+```
 $config['sess_save_path'] = NULL;
 ```
 
 menjadi:
 
-```php
+```
 $config['sess_save_path'] = APPPATH.'cache';
 ```
 ```APPPATH``` 3 P
-```bash
+```
 sudo chown http:http /srv/http/arteri/application/cache
 sudo chmod 750 /srv/http/arteri/application/cache
 ```
@@ -354,8 +354,14 @@ sudo chmod 750 /srv/http/arteri/application/cache
 
 referensi
 
+
 https://www.youtube.com/watch?v=ZpazIwFMqY8
 
 
 https://www.youtube.com/watch?v=zsDzrwT7nvk&t=348s
 
+
+https://www.youtube.com/watch?v=VKtOhvwlNgs&t=37s
+
+
+https://www.youtube.com/watch?v=GYnmm97bPxg
