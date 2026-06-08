@@ -1,20 +1,22 @@
 
-download packet
+download packet apache
 ```
-pacman -Syu
-pacman -S --needed git curl wget unzip nano vim sudo
-pacman -S apache
-```
-Install Apache, PHP-FPM, dan MariaDB
-```
-sudo pacman -S --needed apache php php-fpm php-gd php-intl php-zip mariadb firewalld git nano curl unzip
+sudo pacman -Syu
+sudo pacman -S apache
 ```
 Aktifkan service
 ```
-sudo systemctl enable --now httpd
-sudo systemctl enable --now firewalld
-sudo systemctl enable --now php-fpm
+sudo systemctl enable httpd
+sudo systemctl start httpd
+sudo systemctl status httpd
 ```
+test dengan mengetik 
+```
+curl http://localhost/
+```
+seharusnua muncul page default index.html
+
+
 Konfigurasi apache untuk file terletak di
 ```
 /etc/httpd/conf
@@ -24,61 +26,24 @@ Konfigurasi apache untuk file utama terletak di
 ```
 /etc/httpd/conf/httpd.conf
 ```
+
+Pastikan MPM Event dan modul berikut aktif:
+```
+LoadModule mpm_event_module modules/mod_mpm_event.so
+```
+```
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+LoadModule rewrite_module modules/mod_rewrite.so
+```
+```
+ServerName localhost:80 //boleh pake ip juga seperti 192.168.100.52
+Include conf/extra/httpd-vhosts.conf
+```
 secara default dia akan mengkofigurasi folder di
 ```
 /srv/http
 ```
-
-These options in /etc/httpd/conf/httpd.conf might be interesting for you:
-```
-Listen 80
-```
-masukan ```127.0.0.1:80``` jika ingin local development yang hanya bisa diakses lewat computer
-
-```
-"/srv/http"
-```
-masukan folder web di sini
-
-
-php-fpm
-
-
-cek
-```
-systemctl is-active php-fpm
-```
-buka
-```
-sudo nano /etc/php/php.ini
-```
-Cari dengan Ctrl + W.
-```
-extension=mysqli
-extension=pdo_mysql
-extension=gd
-extension=zip
-extension=mbstring
-```
-Sesuaikan konfigurasi upload dan timezone:
-```
-file_uploads = On
-upload_max_filesize = 64M
-post_max_size = 64M
-memory_limit = 256M
-max_execution_time = 300
-date.timezone = Asia/Jakarta
-```
-Restart PHP-FPM:
-```
-sudo systemctl restart php-fpm
-```
-cari
-aktifkan module untuk proxy
-
-
-<img width="492" height="126" alt="image" src="https://github.com/user-attachments/assets/60bd6bcf-88d1-497b-b44c-4dd774ebcdc6" />
-
 Create /etc/httpd/conf/extra/php-fpm.conf with the following content:
 ```
 DirectoryIndex index.php index.html
@@ -90,39 +55,136 @@ And include it at the bottom of /etc/httpd/conf/httpd.conf:
 ```
 Include conf/extra/php-fpm.conf
 ```
+These options in /etc/httpd/conf/httpd.conf might be interesting for you:
+```
+Listen 80
+```
+masukan ```127.0.0.1:80``` jika ingin local development yang hanya bisa diakses lewat computer
+
+
+
+konfigurasi virtual host, Tambahkan
+```
+<VirtualHost *:80>
+    ServerName arteri.local
+    DocumentRoot "/srv/http/arteri"
+
+    <Directory "/srv/http/arteri">
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+        DirectoryIndex index.php index.html
+    </Directory>
+
+    <DirectoryMatch "^/srv/http/arteri/(application|system|sql)">
+        Require all denied
+    </DirectoryMatch>
+
+    <FilesMatch "\.php$">
+        SetHandler "proxy:unix:/run/php-fpm-legacy/php-fpm.sock|fcgi://localhost/"
+    </FilesMatch>
+
+    ErrorLog "/var/log/httpd/arteri-error.log"
+    CustomLog "/var/log/httpd/arteri-access.log" combined
+</VirtualHost>
+```
+```
+sudo apachectl configtest
+sudo systemctl httpd
+sudo systemctl reload httpd
+```
+```
+"/srv/http"
+```
+masukan folder web di sini
+
+
+php-fpm-legacy
+
+```
+sudo pacman -S php-fpm-legacy
+```
+aktifkan
+```
+sudo systemctl enable php-fpm-legacy
+sudo systemctl start php-fpm-legacy
+sudo systemctl status php-fpm-legacy
+```
+cek
+```
+sudo systemctl is-active php-fpm-legacy
+```
+buka
+```
+sudo nano /etc/php-legacy/php.ini
+```
+Cari dengan Ctrl + W.
+
+
+aktifkan dengan menghapus ;
+```
+extension=mysqli
+extension=pdo_mysql
+extension=gd
+extension=zip
+extension=mbstring
+```
+Restart php:
+```
+sudo systemctl restart php-fpm-legacy
+```
+
+
+<img width="492" height="126" alt="image" src="https://github.com/user-attachments/assets/60bd6bcf-88d1-497b-b44c-4dd774ebcdc6" />
+
+
 
 ```
 sudo systemctl enable --now php-fpm
 ```
-restart apache
 
 
-Install dan Amankan MariaDB
-
+Siapkan MariaDB
 ```
-sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/
-mysql
+sudo pacman -S mariadb
 ```
-Aktifkan MariaDB:
+```
+sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+```
 ```
 sudo systemctl enable mariadb
-```
-Amankan instalasi MariaDB:
-```
 sudo mariadb-secure-installation
 ```
+`/etc/my.cnf.d/server.cnf`:
+
+```ini
+[mysqld]
+bind-address = 127.0.0.1
 ```
+
+3. Buat Database dan User
+
+```bash
 sudo mariadb
 ```
-buat database dan user arteri
+
+```sql
+create database arteri_db character set utf8 collate utf8_unicode_ci;
+create user 'arteri_user'@'localhost'
+  identified by 'kautsar123';
+grant all privilleges on arteri_db.* to 'arteri_user'@'localhost';
+flush privileges;
+exit;
 ```
-CREATE DATABASE arsipDigital CHARACTER SET utf8mb4 COLLATE
-utf8mb4_unicode_ci;
-CREATE USER 'arteriuser'@'localhost' IDENTIFIED BY 'GantiPasswordKuat';
-GRANT ALL PRIVILEGES ON arsipDigital.* TO 'arteriuser'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
+
+```bash
+sudo systemctl restart mariadb
+sudo ss -ltnp | grep 3306
 ```
+
+MariaDB seharusnya mendengarkan pada `127.0.0.1:3306`, bukan `0.0.0.0:3306`.
+
+
 Ambil Project arteri dari GitHub
 ```
 cd /srv/http
@@ -141,13 +203,18 @@ sudo chown -R http:http /srv/http/arteri
 ```
 Set permission dasar:
 ```
-sudo find /srv/http/arteri -type d -exec chmod 755 {} \;
-sudo find /srv/http/arteri -type f -exec chmod 644 {} \;
-```
-Set permission folder yang perlu ditulis aplikasi:
-```
-sudo chmod -R 775 /srv/http/arteri/files
-sudo chown -R http:http /srv/http/arteri/files
+sudo chown -R root:http /srv/http/arteri
+sudo find /srv/http/arteri -type d -exec chmod 750 {} +
+sudo find /srv/http/arteri -type f -exec chmod 640 {} +
+
+sudo chown -R http:http \
+  /srv/http/arteri/application/cache \
+  /srv/http/arteri/application/logs \
+  /srv/http/arteri/files
+sudo chmod 750 \
+  /srv/http/arteri/application/cache \
+  /srv/http/arteri/application/logs \
+  /srv/http/arteri/files
 ```
 Import struktur database bawaan Arteri:
 ```
@@ -155,7 +222,10 @@ sudo mariadb -u arteriuser -p arteri < /srv/http/arteri/sql/arteri.sql
 ```
 Masukkan password:
 ```
-GantiPasswordKuat
+kautsar123
+```
+```
+mariadb -u arteri_user -p -D arteri_db -e show tables;
 ```
 Edit database config Arteri
 ```
@@ -169,8 +239,8 @@ $query_builder = TRUE;
 $db['default'] = array(
     'dsn'      => '',
     'hostname' => 'localhost',
-    'username' => 'arteriuser',
-    'password' => 'GantiPasswordKuat',
+    'username' => 'arteri_user',
+    'password' => 'GANTI_DENGAN_PASSWORD_KUAT',
     'database' => 'arteri',
     'dbdriver' => 'mysqli',
     'dbprefix' => '',
@@ -190,8 +260,80 @@ $db['default'] = array(
 ```
 set permission
 ```
-sudo chown http:http /srv/http/arteri/application/config/database.php
-```
-```
+sudo chown root:http /srv/http/arteri/application/config/database.php
 sudo chmod 640 /srv/http/arteri/application/config/database.php
+```
+Patch Kompatibilitas CodeIgniter 3.1.6
+
+### Dynamic property PHP 8.3
+
+Pada `/srv/http/arteri/index.php`, ubah:
+
+```php
+case 'development':
+    error_reporting(-1);
+    ini_set('display_errors', 1);
+break;
+```
+
+menjadi:
+
+```php
+case 'development':
+    error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+    ini_set('display_errors', 1);
+break;
+```
+
+CodeIgniter 3.1.6 dibuat sebelum PHP 8.2. Tanpa patch ini, notifikasi `Creation of dynamic property ... is deprecated` tercetak sebelum session dan redirect, lalu memicu `headers already sent`.
+
+### Path session
+
+Pada `/srv/http/arteri/application/config/config.php`, ubah:
+
+```php
+$config['sess_save_path'] = NULL;
+```
+
+menjadi:
+
+```php
+$config['sess_save_path'] = APPPATH.'cache';
+```
+```APPPATH``` 3 P
+```bash
+sudo chown http:http /srv/http/arteri/application/cache
+sudo chmod 750 /srv/http/arteri/application/cache
+```
+
+
+Konfigurasi firewalld
+
+```bash
+sudo systemctl enable --now firewalld
+sudo firewall-cmd --get-active-zones
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --reload
+```
+
+Jika HTTPS sudah dikonfigurasi:
+
+```bash
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+```
+
+Jangan buka MariaDB ke jaringan:
+
+```bash
+sudo firewall-cmd --permanent --remove-service=mysql
+sudo firewall-cmd --permanent --remove-port=3306/tcp
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-all
+```
+```
+sudo systemctl restart mariadb
+sudo systemctl restart php-fpm-legacy
+sudo systemctl restart httpd
 ```
