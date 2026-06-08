@@ -28,6 +28,7 @@ Konfigurasi apache untuk file utama terletak di
 ```
 
 Pastikan MPM Event dan modul berikut aktif:
+<img width="492" height="126" alt="image" src="https://github.com/user-attachments/assets/60bd6bcf-88d1-497b-b44c-4dd774ebcdc6" />
 ```
 LoadModule mpm_event_module modules/mod_mpm_event.so
 ```
@@ -114,7 +115,23 @@ cek
 ```
 sudo systemctl is-active php-fpm-legacy
 ```
+```
+cd /srv/http
+```
+```
+sudo nano test.php
+```
+isi
+```
+<?
+  phpinfo();
+?>
+```
+cek webnya akan muncul info php-fpm sudah nyala atau belum
+curl http://localhost/test.php
+```
 buka
+```
 ```
 sudo nano /etc/php-legacy/php.ini
 ```
@@ -133,11 +150,6 @@ Restart php:
 ```
 sudo systemctl restart php-fpm-legacy
 ```
-
-
-<img width="492" height="126" alt="image" src="https://github.com/user-attachments/assets/60bd6bcf-88d1-497b-b44c-4dd774ebcdc6" />
-
-
 
 ```
 sudo systemctl enable --now php-fpm
@@ -263,6 +275,39 @@ set permission
 sudo chown root:http /srv/http/arteri/application/config/database.php
 sudo chmod 640 /srv/http/arteri/application/config/database.php
 ```
+
+
+Konfigurasi firewalld
+
+```bash
+sudo systemctl enable --now firewalld
+sudo firewall-cmd --get-active-zones
+sudo firewall-cmd --permanent --add-service=ssh
+sudo firewall-cmd --permanent --add-service=http
+sudo firewall-cmd --reload
+```
+
+Jika HTTPS sudah dikonfigurasi:
+
+```bash
+sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+```
+
+Jangan buka MariaDB ke jaringan:
+
+```bash
+sudo firewall-cmd --permanent --remove-service=mysql
+sudo firewall-cmd --permanent --remove-port=3306/tcp
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-all
+```
+```
+sudo systemctl restart mariadb
+sudo systemctl restart php-fpm-legacy
+sudo systemctl restart httpd
+```
+
 Patch Kompatibilitas CodeIgniter 3.1.6
 
 ### Dynamic property PHP 8.3
@@ -307,33 +352,10 @@ sudo chmod 750 /srv/http/arteri/application/cache
 ```
 
 
-Konfigurasi firewalld
+referensi
 
-```bash
-sudo systemctl enable --now firewalld
-sudo firewall-cmd --get-active-zones
-sudo firewall-cmd --permanent --add-service=ssh
-sudo firewall-cmd --permanent --add-service=http
-sudo firewall-cmd --reload
-```
+https://www.youtube.com/watch?v=ZpazIwFMqY8
 
-Jika HTTPS sudah dikonfigurasi:
 
-```bash
-sudo firewall-cmd --permanent --add-service=https
-sudo firewall-cmd --reload
-```
+https://www.youtube.com/watch?v=zsDzrwT7nvk&t=348s
 
-Jangan buka MariaDB ke jaringan:
-
-```bash
-sudo firewall-cmd --permanent --remove-service=mysql
-sudo firewall-cmd --permanent --remove-port=3306/tcp
-sudo firewall-cmd --reload
-sudo firewall-cmd --list-all
-```
-```
-sudo systemctl restart mariadb
-sudo systemctl restart php-fpm-legacy
-sudo systemctl restart httpd
-```
