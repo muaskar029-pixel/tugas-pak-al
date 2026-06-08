@@ -27,7 +27,7 @@ sudo nano index.html
 ```
 isi
 ```html
-<h1>Hallo mas reza</h1>
+<h1>Hallo mas fuad</h1>
 ```
 ```
 curl http://localhost/
@@ -219,6 +219,8 @@ sudo ss -ltnp | grep 3306
 MariaDB seharusnya mendengarkan pada `127.0.0.1:3306`, bukan `0.0.0.0:3306`.
 
 
+https://github.com/dicarve/arteri/blob/master/panduan_instalasi.md
+
 Ambil Project arteri dari GitHub
 ```
 cd /srv/http
@@ -354,6 +356,10 @@ break;
 
 CodeIgniter 3.1.6 dibuat sebelum PHP 8.2. Tanpa patch ini, notifikasi `Creation of dynamic property ... is deprecated` tercetak sebelum session dan redirect, lalu memicu `headers already sent`.
 
+https://github.com/bcit-ci/CodeIgniter/issues/6278
+
+https://www.codeigniter.com/userguide3/libraries/sessions.html
+
 ### Path session
 
 Pada `/srv/http/arteri/application/config/config.php`, ubah:
@@ -372,6 +378,8 @@ $config['sess_save_path'] = APPPATH.'cache';
 sudo chown http:http /srv/http/arteri/application/cache
 sudo chmod 750 /srv/http/arteri/application/cache
 ```
+https://firewalld.org/
+
 
 
 referensi
@@ -390,3 +398,7 @@ https://www.youtube.com/watch?v=GYnmm97bPxg
 
 
 https://httpd.apache.org/docs/current/zh-cn/sitemap.html
+
+https://www.redhat.com/en/blog/linux-file-permissions-explained?utm_source=chatgpt.com
+
+
